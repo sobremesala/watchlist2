@@ -2,17 +2,8 @@
 
 {% block content %}
 <p>{{ movies|length }} Titles</p>
-{% if current_user.is_authenticated %}
-<form name="search-form" method="post" action="{{ url_for('search') }}">
-    <input type="text" name="search" placeholder="Search by title or year" autocomplete="off" required>
-    <input class="btn" type="submit" name="submit" value="Search">
-</form>
-<form name="add-movie-form" method="post">
-    Name <input type="text" name="title" autocomplete="off" required>
-    Year <input type="text" name="year" autocomplete="off" required>
-    <input class="btn" type="submit" name="submit" value="Add">
-</form>
-{% endif %}
+
+
 <ul class="movie-list">
     {% for movie in movies %}
     <li>{{ movie.title }} - {{ movie.year }}
@@ -28,5 +19,4 @@
     </li>
     {% endfor %}
 </ul>
-<img alt="Walking Totoro" class="totoro" src="{{ url_for('static', filename='images/fooo.png') }}" title="to~to~ro~">
 {% endblock %}

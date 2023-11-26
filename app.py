@@ -43,6 +43,7 @@ with app.app_context():
         # (1,)
 '''
 
+
 class Movie(db.Model):  # 表名将会是 movies
     __tablename__ = "movie"
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)  # 会自动增长的主键
@@ -154,6 +155,7 @@ def load_user(user_id):  # 创建用户加载回调函数，接受用户 ID 作�
     user = User.query.get(int(user_id))  # 用 ID 作为 User 模型的主键查询对应的用户
     return user  # 返回用户对象
 
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -169,6 +171,7 @@ def login():
             login_user(user)
             flash('Login success.')
             return redirect(url_for('index'))
+
 
         flash('Invalid username or password.')
         return redirect(url_for('login'))
@@ -252,6 +255,27 @@ def user_page(name):
 
 
 
+# 搜索结果界面的渲染
+@app.route('/search', methods=['POST'])
+def search():
+    # 根据需要在此处进行搜索结果页面的渲染逻辑
+    search_term = request.form.get('search')
+    if search_term is not None:
+        movies = Movie.query.all()
+        filtered_movies = []
+        for movie in movies:
+            if search_term.lower() in movie.title.lower() or str(movie.year) == search_term:
+                filtered_movies.append(movie)
+
+        if filtered_movies:
+            flash('successful.')
+            return render_template('search_results.html', movies=filtered_movies)
+
+    movies = Movie.query.all()
+    flash('fail.')
+    return render_template('index.html', movies=movies)
+
+
 # 增添数据
 '''
 with app.app_context():
@@ -299,9 +323,3 @@ with app.app_context():
 
 
 
-password = '123'
-password_hash = generate_password_hash(password)
-is_valid = check_password_hash(password_hash, password)
-
-print(f'Password hash: {password_hash}')
-print(f'Is valid: {is_valid}')
