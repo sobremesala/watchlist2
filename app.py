@@ -1,3 +1,4 @@
+
 from flask import request, url_for, redirect, flash
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
@@ -320,6 +321,7 @@ with app.app_context():
     db.session.add(user1)  # 把新创建的记录添加到数据库会话
     db.session.commit()  # 提交数据库会话，只需要在最后调用一次即可
 '''
+
 
 
 
