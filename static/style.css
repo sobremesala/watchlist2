@@ -128,7 +128,7 @@ form[name="add-movie-form"] input[name=year] {
     padding: 7px;
     margin: 7px 0;
     border: 1px solid transparent;
-    color: lightsteelblue;
+    color: #1e5c8f;
     background-color: #cce5ff;
     border-color: #b8daff;
     border-radius: 5px;
@@ -155,12 +155,26 @@ form[name="add-movie-form"] input[name=year] {
     padding: 5px 10px;
 }
 */
-form[name="search-form"] input[type=submit] {
-    font-family: inherit;
-}
-
 form[name="search-form"] input[type=text] {
+    border: 1px solid #faf9f9;
     border: 1px solid #ccc;
 }
 
+form[name="search-form"] {
+    margin-bottom: 10px;
+
+}
+
+.back-button {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #f1f1f1;
+    color: #333;
+    text-decoration: none;
+    border-radius: 5px;
+}
+
+.back-button:hover {
+    background-color: #ddd;
+}
 
