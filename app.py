@@ -276,13 +276,14 @@ def search():
     flash('fail.')
     return render_template('index.html', movies=movies)
 
+# 在搜索界面定义返回函数
+@app.route('/back')
+def back():
+    return render_template('index.html')
 
 # 增添数据
 '''
 with app.app_context():
-    user = User(name='Grey Li', username='Grey Lii', password_hash='123')  # 创建一个 User 记录
-    user1 = User(name='sobremesala', username='sobremesala', password_hash='123')  # 创建一个 User 记录
-    db.session.add(user)  # 把新创建的记录添加到数据库会话
     m1 = Movie(title='战狼2', year='2017')  # 创建一个 Movie 记录
     m2 = Movie(title='哪吒之魔童降世', year='2019')  # 再创建一个 Movie 记录
     m3 = Movie(title='流浪地球', year='2019')  # 再创建一个 Movie 记录
@@ -318,7 +319,6 @@ with app.app_context():
     db.session.add(m15)
     db.session.add(m16)
     db.session.add(m17)
-    db.session.add(user1)  # 把新创建的记录添加到数据库会话
     db.session.commit()  # 提交数据库会话，只需要在最后调用一次即可
 '''
 
