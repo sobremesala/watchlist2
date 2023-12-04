@@ -4,12 +4,13 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 # 从 flask 包导入 Flask 类，通过实例化这个类，创建一个程序对象 app:
 from markupsafe import escape
-
+from datetime import datetime
 from flask import Flask, render_template
 from flask_sqlalchemy import SQLAlchemy  # 导入扩展类
-# from sqlalchemy import text
+from sqlalchemy import text
 app = Flask(__name__)
-
+import pymysql
+from sqlalchemy import or_
 app.secret_key = '123'
 
 login_manager = LoginManager(app)  # 实例化扩展类
@@ -30,7 +31,7 @@ USERNAME = "root"
 # 连接MySQL的密码
 PASSWORD = "root"
 # MySQL上创建的数据库名称
-DATABASE = "watchlist"
+DATABASE = "mywatchlist"
 
 app.config['SQLALCHEMY_DATABASE_URI']= f"mysql+pymysql://{USERNAME}:{PASSWORD}@{HOSTNAME}:{PORT}/{DATABASE}?charset=utf8mb4"
 db = SQLAlchemy(app)  # 初始化扩展，传入程序实例 app
@@ -45,12 +46,51 @@ with app.app_context():
 '''
 
 
-class Movie(db.Model):  # 表名将会是 movies
-    __tablename__ = "movie"
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)  # 会自动增长的主键
+class Movie(db.Model):  # 表名将会是 movie_info
+    __tablename__ = "movie_info"
+    movie_id = db.Column(db.Integer, primary_key=True, autoincrement=True)  # 会自动增长的主键
     title = db.Column(db.String(60))  # 电影标题
-    year = db.Column(db.String(4))  # 电影年份
+    release_date = db.Column(db.DateTime)
+    country = db.Column(db.String(20))  # 电影国家
+    movie_type = db.Column(db.String(10))  # 电影类型
+    year = db.Column(db.Integer)  # 电影年份
 
+class MovieBox(db.Model): # 存储电影票房的表格
+    __tablename__ = 'move_box'
+    movie_id = db.Column(db.Integer, db.ForeignKey('movie_info.movie_id'), primary_key=True, autoincrement=True) # 通过db.ForeignKey将movie_id字段与movie_info表中的对应字段进行关联。
+    box = db.Column(db.Float) # 电影票房
+    movie = db.relationship('Movie', backref=db.backref('movie_box', cascade='all, delete-orphan'))
+
+class ActorInfo(db.Model):
+    __tablename__ = 'actor_info'
+    actor_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    actor_name = db.Column(db.String(20), nullable=False)
+    gender = db.Column(db.String(2), nullable=False)
+    actor_country = db.Column(db.String(20))
+
+class MovieActorRelation(db.Model):
+    __tablename__ = 'movie_actor_relation'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    movie_id = db.Column(db.Integer,  db.ForeignKey('movie_info.movie_id'), nullable=False, autoincrement=True) # 对应字段进行关联
+    actor_id = db.Column(db.Integer, db.ForeignKey('actor_info.actor_id'), nullable=False, autoincrement=True)
+    relation_type = db.Column(db.String(20)) # 主演还是导演
+    movie = db.relationship('Movie', backref=db.backref('movie_actor_relations', cascade='all, delete-orphan'))
+    actor = db.relationship('ActorInfo', backref=db.backref('movie_actor_relations', cascade='all, delete-orphan'))
+'''
+with app.app_context():
+    # 创建电影和演员对象
+    movie = Movie(title='电影标题', release_date=datetime.now(), country='电影国家', movie_type='电影类型', year=2022)
+    actor = ActorInfo(actor_name='演员姓名', gender='性别', actor_country='演员国家')
+    # 创建电影和演员的关联关系对象
+    relation = MovieActorRelation(movie_id=movie.movie_id, actor_id=actor.actor_id, relation_type='主演')
+    # 创建电影票房信息对象
+    movie_box = MovieBox(movie_id=movie.movie_id, box=1000000.0)
+    # 将对象添加到数据库会话中
+    db.session.add(movie)
+    db.session.add(actor)
+    db.session.add(movie_box)
+    db.session.add(relation)
+'''
 
 class User(db.Model, UserMixin):
     __tablename__ = "User"
@@ -58,11 +98,9 @@ class User(db.Model, UserMixin):
     name = db.Column(db.String(20))
     username = db.Column(db.String(20))  # 用户名
     password_hash = db.Column(db.String(256))  # 密码哈希值
-
     def set_password(self, password):  # 用来设置密码的方法，接受密码作为参数
         self.password = password  # 将明文密码存储在 password 字段中
         self.password_hash = generate_password_hash(password)  # 将生成的密码哈希值存储在 password_hash 字段中
-
     def validate_password(self, password):  # 用于验证密码的方法，接受密码作为参数
         return check_password_hash(self.password_hash, password)  # 返回布尔值
 
@@ -75,68 +113,57 @@ def index():
         # 获取表单数据
         if not current_user.is_authenticated:  # 如果当前用户未认证
             return redirect(url_for('index'))  # 重定向到主页
-        title = request.form.get('title')  # 传入表单对应输入字段的 name 值
-        year = request.form.get('year')
+        title = request.form.get('title')
+        release_date = request.form.get('release_date')
+        country = request.form.get('country')
+        movie_type = request.form.get('movie_type')
+        year = int(request.form.get('year'))
+        actor_name = request.form.get('actor_name')
+        relation_type = request.form.get('relation_type')
+        actor_country = request.form.get('actor_country')
+        gender = request.form.get('gender')
+        box_value = request.form.get('box')
+        if box_value:
+            box = float(box_value)
+        else:
+            box = None  # 或者其他你认为合适的默认值
         # 验证数据
-        if not title or not year or len(year) > 4 or len(title) > 60:
+        if release_date == '':
+            release_date = '9999/01/01'  # 使用 "9999/01/01" 替代空字符串
+
+        release_date = datetime.strptime(release_date, '%Y/%m/%d')
+        if not title or not year or not country or not movie_type or len(str(year)) > 4 or len(title) > 60:
             flash('Invalid input.')  # 显示错误提示
             return redirect(url_for('index'))  # 重定向回主页
         # 保存表单数据到数据库
-        movie = Movie(title=title, year=year)  # 创建记录
-        db.session.add(movie)  # 添加到数据库会话
-        db.session.commit()  # 提交数据库会话
+        movie = Movie(title=title, release_date=release_date, country=country, movie_type=movie_type, year=year)  # 创建记录
+        # 创建演员对象
+        db.session.add(movie) # 添加到数据库会话
+        db.session.commit()  # # 提交数据库会话，保存关联关系和电影票房信息
+        actor = ActorInfo(actor_name=actor_name, gender=gender, actor_country=actor_country)
+        # 创建电影票房信息对象
+        db.session.add(actor)
+        db.session.commit()  # # 提交数据库会话，保存关联关系和电影票房信息
+        movie_box = MovieBox(movie_id=movie.movie_id, box=box)
+        # 创建电影和演员的关联关系对象
+        relation = MovieActorRelation(movie_id=movie.movie_id, actor_id=actor.actor_id, relation_type=relation_type)
+        # 将对象添加到数据库会话中
+        db.session.add(movie_box)
+        db.session.add(relation)
+        db.session.commit()  # # 提交数据库会话，保存关联关系和电影票房信息
         flash('Item created.')  # 显示成功创建的提示
         return redirect(url_for('index'))  # 重定向回主页
-
-    movies = Movie.query.all()
-    return render_template('index.html', movies=movies)
-
-@app.route('/movie/edit/<int:movie_id>', methods=['GET', 'POST'])
-@login_required  # 登录保护
-def edit(movie_id):
-    movie = Movie.query.get_or_404(movie_id)
-
-    if request.method == 'POST':  # 处理编辑表单的提交请求
-        title = request.form['title']
-        year = request.form['year']
-
-        if not title or not year or len(year) != 4 or len(title) > 60:
-            flash('Invalid input.')
-            return redirect(url_for('edit', movie_id=movie_id))  # 重定向回对应的编辑页面
-
-        movie.title = title  # 更新标题
-        movie.year = year  # 更新年份
-        db.session.commit()  # 提交数据库会话
-        flash('Item updated.')
-        return redirect(url_for('index'))  # 重定向回主页
-
-    return render_template('edit.html', movie=movie)  # 传入被编辑的电影记录
-
-@app.route('/movie/delete/<int:movie_id>', methods=['POST'])  # 限定只接受 POST 请求
-@login_required  # 登录保护
-def delete(movie_id):
-    movie = Movie.query.get_or_404(movie_id)  # 获取电影记录
-    db.session.delete(movie)  # 删除对应的记录
-    db.session.commit()  # 提交数据库会话
-    flash('Item deleted.')
-    return redirect(url_for('index'))  # 重定向回主页
+    movie_info = Movie.query.all()
+    return render_template('index.html', movies=movie_info)
 
 @app.errorhandler(404)
 def page_not_found(e):
     return render_template('404.html'), 404
 
-@app.context_processor
-def inject_user():
-    user = User.query.first()
-    return dict(user=user)
-
 @app.cli.command()
 @click.option('--username', prompt=True, help='The username used to login.')
 @click.option('--password', prompt=True, hide_input=True, confirmation_prompt=True, help='The password used to login.')
 def admin(username, password):
-    """Create user."""
-    db.create_all()
-
     user = User.query.first()
     if user is not None:
         click.echo('Updating user...')
@@ -147,9 +174,81 @@ def admin(username, password):
         user = User(username=username, name='Admin')
         user.set_password(password)  # 设置密码
         db.session.add(user)
-
     db.session.commit()  # 提交数据库会话
     click.echo('Done.')
+
+@app.route('/movie/edit/<int:movie_id>', methods=['GET', 'POST'])
+@login_required  # 登录保护
+def edit(movie_id):
+    movie = Movie.query.get_or_404(movie_id)
+
+    if request.method == 'POST':  # 处理编辑表单的提交请求
+        if not current_user.is_authenticated:  # 如果当前用户未认证
+            return redirect(url_for('index'))  # 重定向到主页
+            flash('Is not authenticated.')
+        # 获取表单数据
+        title = request.form.get('title')
+        release_date = request.form.get('release_date')
+        country = request.form.get('country')
+        movie_type = request.form.get('movie_type')
+        year = int(request.form.get('year'))
+        actor_name = request.form.get('actor_name')
+        relation_type = request.form.get('relation_type')
+        actor_country = request.form.get('actor_country')
+        gender = request.form.get('gender')
+        box_value = request.form.get('box')
+        if box_value:
+            box = float(box_value)
+        else:
+            box = None  # 或者其他你认为合适的默认值
+        # 验证数据
+        if release_date == '':
+            release_date = '9999/01/01'  # 使用 "9999/01/01" 替代空字符串
+
+        release_date = datetime.strptime(release_date, '%Y/%m/%d')
+        if not title or not year or not country or not movie_type or len(str(year)) > 4 or len(title) > 60:
+            flash('Invalid input.')  # 显示错误提示
+            return redirect(url_for('index'))  # 重定向回主页
+        # 更新电影信息
+        movie.title = title
+        movie.release_date = release_date
+        movie.country = country
+        movie.movie_type = movie_type
+        movie.year = year
+        # 更新演员信息
+        if movie.movie_actor_relations:
+            for relation in movie.movie_actor_relations:
+                if relation.actor:
+                    relation.actor.actor_name = actor_name
+                    relation.actor.gender = gender
+                    relation.actor.actor_country = actor_country
+        # 更新票房信息
+        if movie.movie_box:
+            movie.movie_box.box = box
+        # 更新电影和演员的关联关系
+        if movie.movie_actor_relations:
+            for relation in movie.movie_actor_relations:
+                relation.relation_type = relation_type
+        # 提交数据库会话，保存更新后的信息
+        db.session.commit()
+        flash('Item updated.')
+        return redirect(url_for('index'))  # 重定向回主页
+    return render_template('edit.html', movie=movie, actor_info=movie.movie_actor_relations, move_box=movie.movie_box)
+
+@app.route('/movie/delete/<int:movie_id>', methods=['POST'])  # 限定只接受 POST 请求
+@login_required  # 登录保护
+def delete(movie_id):
+    movie = Movie.query.get_or_404(movie_id)  # 获取电影记录
+    db.session.delete(movie)  # 删除对应的记录
+    db.session.commit()  # 提交数据库会话
+    flash('Item deleted.')
+    return redirect(url_for('index'))  # 重定向回主页
+
+
+@app.context_processor
+def inject_user():
+    user = User.query.first()
+    return dict(user=user)
 
 @login_manager.user_loader
 def load_user(user_id):  # 创建用户加载回调函数，接受用户 ID 作为参数
@@ -176,9 +275,7 @@ def login():
 
         flash('Invalid username or password.')
         return redirect(url_for('login'))
-
     return render_template('login.html')
-
 
 
 @app.route('/logout')
@@ -211,43 +308,7 @@ def settings():
 
     return render_template('settings.html')
 
-'''
-#  movie_info = Movie(title="战狼2", year="2017", country="中国", type="战争")
-@app.cli.command()
-def forge():
-    """Generate fake data."""
-    db.create_all()
-    # 全局的两个变量移动到这个函数内
-    name = 'Sobremesala'
-    movies = [
-        {'title': '速度与激情9', 'year': '2021', 'country': '中国', 'type': '动作'},
-        {'title': '长津湖', 'year': '2021', 'country': '中国', 'type': '战争'},
-        {'title': '你好，李焕英', 'year': '2021', 'country': '中国', 'type': '喜剧'},
-        {'title': '我和我的家乡', 'year': '2020', 'country': '中国', 'type': '剧情'},
-        {'title': '姜子牙', 'year': '2020', 'country': '中国', 'type': '动画'},
-        {'title': '八佰', 'year': '2020', 'country': '中国', 'type': '战争'},
-        {'title': '捉妖记2', 'year': '2018', 'country': '中国', 'type': '喜剧'},
-        {'title': '复仇者联盟3', 'year': '2018', 'country': '美国', 'type': '科幻'},
-        {'title': '战狼2', 'year': '2017', 'country': '中国', 'type': '战争'},
-        {'title': '哪吒之魔童降世', 'year': '2019', 'country': '中国', 'type': '动画'},
-        {'title': '流浪地球', 'year': '2019', 'country': '中国', 'type': '科幻'},
-        {'title': '复仇者联盟4', 'year': '2019', 'country': '美国', 'type': '科幻'},
-        {'title': '红海行动', 'year': '2018', 'country': '中国', 'type': '战争'},
-        {'title': '唐人街探案2', 'year': '2018', 'country': '中国', 'type': '喜剧'},
-        {'title': '我不是药神', 'year': '2018', 'country': '中国', 'type': '喜剧'},
-        {'title': '中国机长', 'year': '2019', 'country': '中国', 'type': '剧情'},
-        {'title': '速度与激情8', 'year': '2017', 'country': '美国', 'type': '动作'},
-        {'title': '西虹市首富', 'year': '2018', 'country': '中国', 'type': '喜剧'},
-    ]
-    user = User(name=name)
-    db.session.add(user)
-    for m in movies:
-        movie_info = Movie(title=m['title'], year=m['year'], country=m['country'], type=m['type'])
-        db.session.add(movie_info)
 
-    db.session.commit()
-    click.echo('Done.')
-'''
 
 # 使用MarkupSafe（Flask 的依赖之一）提供的 escape() 函数对 name 变量进行转义处理，比如把 < 转换成 &lt;。这样在返回响应时浏览器就不会把它们当做代码执行。
 @app.route('/user/<name>')
@@ -255,73 +316,47 @@ def user_page(name):
     return f'User: {escape(name)}'
 
 
-
 # 搜索结果界面的渲染
-@app.route('/search', methods=['POST'])
+@app.route('/search', methods=['GET', 'POST'])
 def search():
-    # 根据需要在此处进行搜索结果页面的渲染逻辑
-    search_term = request.form.get('search')
-    if search_term is not None:
-        movies = Movie.query.all()
-        filtered_movies = []
-        for movie in movies:
-            if search_term.lower() in movie.title.lower() or str(movie.year) == search_term:
-                filtered_movies.append(movie)
+    search_term = request.form.get('search_term')
+    year = request.form.get('year')
+    movie_type = request.form.get('movie_type')
+    country = request.form.get('country')
+    actor = request.form.get('actor')
 
-        if filtered_movies:
-            flash('successful.')
-            return render_template('search_results.html', movies=filtered_movies)
+    # 构建查询
+    query = Movie.query
 
-    movies = Movie.query.all()
-    flash('fail.')
-    return render_template('index.html', movies=movies)
+    if search_term:
+        query = query.filter(Movie.title.ilike(f'%{search_term}%'))
+    if year:
+        query = query.filter(Movie.year == year)
+    if movie_type:
+        query = query.filter(Movie.movie_type == movie_type)
+    if country:
+        query = query.filter(Movie.country.ilike(f'%{country}%'))
+    if actor:
+        query = query.join(Movie.movie_actor_relations).join(MovieActorRelation.actor).filter(ActorInfo.actor_name.ilike(f'%{actor}%'))
+
+    # 执行查询并获取结果
+    movies = query.all()
+    return render_template('search_results.html', movies=movies)
 
 # 在搜索界面定义返回函数
 @app.route('/back')
 def back():
     return render_template('index.html')
 
-# 增添数据
+
 '''
 with app.app_context():
-    m1 = Movie(title='战狼2', year='2017')  # 创建一个 Movie 记录
-    m2 = Movie(title='哪吒之魔童降世', year='2019')  # 再创建一个 Movie 记录
-    m3 = Movie(title='流浪地球', year='2019')  # 再创建一个 Movie 记录
-    m4 = Movie(title='复仇者联盟4', year='2019')  # 再创建一个 Movie 记录
-    m5 = Movie(title='红海行动', year='2018')  # 再创建一个 Movie 记录
-    m6 = Movie(title='唐人街探案2', year='2018')  # 再创建一个 Movie 记录
-    m7 = Movie(title='我不是药神', year='2018')  # 再创建一个 Movie 记录
-    m8 = Movie(title='中国机长', year='2019')  # 再创建一个 Movie 记录
-    m9 = Movie(title='速度与激情8', year='2017')  # 再创建一个 Movie 记录
-    m10 = Movie(title='西虹市首富', year='2018')  # 再创建一个 Movie 记录
-    m11 = Movie(title='复仇者联盟3', year='2018')  # 再创建一个 Movie 记录
-    m12 = Movie(title='捉妖记2', year='2018')  # 再创建一个 Movie 记录
-    m13 = Movie(title='八佰', year='2020')  # 再创建一个 Movie 记录
-    m14 = Movie(title='姜子牙', year='2020')  # 再创建一个 Movie 记录
-    m15 = Movie(title='我和我的家乡', year='2020')  # 再创建一个 Movie 记录
-    m16 = Movie(title='你好，李焕英', year='2021')  # 再创建一个 Movie 记录
-    m17 = Movie(title='长津湖', year='2021')  # 再创建一个 Movie 记录
-    m17 = Movie(title='速度与激情9', year='2021')  # 再创建一个 Movie 记录
-    db.session.add(m1)
-    db.session.add(m2)
-    db.session.add(m3)
-    db.session.add(m4)
-    db.session.add(m5)
-    db.session.add(m6)
-    db.session.add(m7)
-    db.session.add(m8)
-    db.session.add(m9)
-    db.session.add(m10)
-    db.session.add(m11)
-    db.session.add(m12)
-    db.session.add(m13)
-    db.session.add(m14)
-    db.session.add(m15)
-    db.session.add(m16)
-    db.session.add(m17)
-    db.session.commit()  # 提交数据库会话，只需要在最后调用一次即可
+    # db.create_all() # 创建表
+    db.session.commit() # 提交数据库会话
 '''
-
-
-
-
+'''
+# 创建应用上下文
+with app.app_context():
+    # 删除表
+    db.drop_all()
+'''
