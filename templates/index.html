@@ -2,24 +2,15 @@
 
 {% block content %}
 <p>{{ movies|length }} Titles</p>
-{% if current_user.is_authenticated %}
-<form name="search-form" method="post" action="{{ url_for('search') }}">
-    <input type="text" name="search" placeholder="Search by title or year" autocomplete="off" required>
-    <input class="btn" type="submit" name="submit" value="Search">
-</form>
-<form name="add-movie-form" method="post">
-    Name <input type="text" name="title" autocomplete="off" required>
-    Year <input type="text" name="year" autocomplete="off" required>
-    <input class="btn" type="submit" name="submit" value="Add">
-</form>
-{% endif %}
+
+<div class="list-container">
 <ul class="movie-list">
     {% for movie in movies %}
-    <li>{{ movie.title }} - {{ movie.year }}
+    <li>{{ movie.title }} - {{ movie.year }} - {{ movie.country }} - {{ movie.movie_type }}
         <span class="float-right">
             {% if current_user.is_authenticated %}
-            <a class="btn" href="{{ url_for('edit', movie_id=movie.id) }}">Edit</a>
-            <form class="inline-form" method="post" action="{{ url_for('delete', movie_id=movie.id) }}">
+            <a class="btn" href="{{ url_for('edit', movie_id=movie.movie_id) }}">Edit</a>
+            <form class="inline-form" method="post" action="{{ url_for('delete', movie_id=movie.movie_id) }}">
                 <input class="btn" type="submit" name="delete" value="Delete" onclick="return confirm('Are you sure?')">
             </form>
             {% endif %}
@@ -28,5 +19,81 @@
     </li>
     {% endfor %}
 </ul>
+
+<form name="search-form" method="post" action="{{ url_for('search') }}">
+  <h3>Search Movie Information</h3>
+    <label for="title">Name</label>
+    <input type="text" name="title" id="title" autocomplete="off" >
+    <label for="year">Year</label>
+    <input type="text" name="year" id="year" autocomplete="off" >
+    <label for="country">Country</label>
+    <input type="text" name="country" id="country" autocomplete="off">
+    <label for="movie_type">Type</label>
+    <select name="movie_type" id="movie_type">
+        <option value="" selected disabled>请选择电影类型</option>
+        <option value="动作">动作</option>
+        <option value="喜剧">喜剧</option>
+        <option value="剧情">剧情</option>
+        <option value="战争">战争</option>
+        <option value="科幻">科幻</option>
+        <option value="动画">动画</option>
+        <option value="悬疑">悬疑</option>
+        <option value="惊悚">惊悚</option>
+        <option value="推理">推理</option>
+    </select>
+    <label for="actor_name">Actor Name</label>
+    <input type="text" name="actor_name" id="actor_name" autocomplete="off">
+    <input class="btn" type="submit" name="submit" value="Search">
+</form>
+{% if current_user.is_authenticated %}
+<form name="add-movie-form" method="post">
+     <h3>Add Movie Information</h3>
+    <label for="title">Name</label>
+    <input type="text" name="title" id="title" autocomplete="off" required>
+    <label for="year">Year</label>
+    <input type="text" name="year" id="year" autocomplete="off" required>
+    <label for="release_date">Release Date</label>
+    <input type="date" name="release_date" id="release_date" autocomplete="off">
+    <label for="country">Country</label>
+    <input type="text" name="country" id="country" required autocomplete="off">
+    <label for="movie_type">Type</label>
+    <select name="movie_type" id="movie_type" required>
+        <option value="" selected disabled>请选择电影类型</option>
+        <option value="动作">动作</option>
+        <option value="喜剧">喜剧</option>
+        <option value="剧情">剧情</option>
+        <option value="战争">战争</option>
+        <option value="科幻">科幻</option>
+        <option value="动画">动画</option>
+        <option value="悬疑">悬疑</option>
+        <option value="惊悚">惊悚</option>
+        <option value="推理">推理</option>
+    </select>
+    <label for="box">Box Office</label>
+    <input type="text" name="box" id="box" autocomplete="off">
+    <h3>Add Actor Information</h3>
+    <label for="actor_name">Actor Name</label>
+    <input type="text" name="actor_name" id="actor_name" autocomplete="off" >
+    <label for="relation_type">relation_type</label>
+    <select name="relation_type" id="relation_type" autocomplete="off">
+        <option value="" selected disabled>请选择关系类型</option>
+        <option value="主演">主演</option>
+        <option value="导演">导演</option>
+    </select>
+    <label for="gender">Gender</label>
+    <select name="gender" id="gender" autocomplete="off">
+        <option value="" selected disabled>请选择性别类型</option>
+        <option value="男">男</option>
+        <option value="女">女</option>
+        <option value="其他">其他</option>
+    </select>
+    <label for="actor_country">Country</label>
+    <input type="text" name="actor_country" id="actor_country" autocomplete="off">
+    <input class="btn" type="submit" name="submit" value="Add">
+</form>
+{% endif %}
+    </p>
+</div>
 <img alt="Walking Totoro" class="totoro" src="{{ url_for('static', filename='images/fooo.png') }}" title="to~to~ro~">
 {% endblock %}
+
