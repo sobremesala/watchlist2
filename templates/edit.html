@@ -1,10 +1,59 @@
+<head>
+  <link rel="stylesheet" href="edit.css">
+</head>
+<body>
 {% extends 'base.html' %}
 
 {% block content %}
 <h3>Edit item</h3>
-<form method="post">
-    Name <input type="text" name="title" autocomplete="off" required value="{{ movie.title }}">
-    Year <input type="text" name="year" autocomplete="off" required value="{{ movie.year }}">
-    <input class="btn" type="submit" name="submit" value="Update">
+<form class="edit-movie-form" method="post">
+    <h3>Edit Movie Information</h3>
+    <label for="title">Name</label>
+    <input type="text" name="title" id="title" autocomplete="off" required value="{{ movie.title }}"><br>
+    <label for="year">Year</label>
+    <input type="text" name="year" id="year" autocomplete="off" required value="{{ movie.year }}"><br>
+    <label for="release_date">Release Date</label>
+    <input type="date" name="release_date" id="release_date" value="{{ movie.release_date }}"><br>
+    <label for="country">Country</label>
+    <input type="text" name="country" id="country" required value="{{ movie.country }}"><br>
+    <label for="movie_type">Type</label>
+    <select name="movie_type" id="movie_type" required>
+        <option value="" selected disabled>请选择电影类型</option>
+        <option value="动作" {% if movie.movie_type =='动作' %}selected{% endif %}>动作</option>
+        <option value="喜剧" {% if movie.movie_type =='喜剧' %}selected{% endif %}>喜剧</option>
+        <option value="剧情" {% if movie.movie_type =='剧情' %}selected{% endif %}>剧情</option>
+        <option value="战争" {% if movie.movie_type =='战争' %}selected{% endif %}>战争</option>
+        <option value="科幻" {% if movie.movie_type =='科幻' %}selected{% endif %}>科幻</option>
+        <option value="动画" {% if movie.movie_type =='动画' %}selected{% endif %}>动画</option>
+        <option value="悬疑" {% if movie.movie_type =='悬疑' %}selected{% endif %}>悬疑</option>
+        <option value="惊悚" {% if movie.movie_type =='惊悚' %}selected{% endif %}>惊悚</option>
+        <option value="推理" {% if movie.movie_type =='推理' %}selected{% endif %}>推理</option>
+    </select><br>
+    <label for="box">Box Office</label>
+    <input type="text" name="box" id="box" value="{{ move_box.box }}">
+<br><br>
+    <h3>Edit Actor Information</h3>
+    {% for actor in actor_info %}
+    <label for="actor_name">Actor Name</label>
+    <input type="text" name="actor_name" id="actor_name" autocomplete="off" required value="{{ actor.actor.actor_name }}"><br>
+    <label for="gender">Gender</label>
+    <select name="gender" id="gender">
+        <option value="" selected disabled>请选择性别类型</option>
+        <option value="男" {% if actor.actor.gender =='男' %}selected{% endif %}>男</option>
+        <option value="女" {% if actor.actor.gender =='女' %}selected{% endif %}>女</option>
+        <option value="其他" {% if actor.actor.gender =='其他' %}selected{% endif %}>其他</option>
+    </select><br>
+    <label for="actor_country">Country</label>
+    <input type="text" name="actor_country" id="actor_country" value="{{ actor.actor.actor_country }}"><br>
+    <label for="relation_type">Relation Type</label>
+    <select name="relation_type" id="relation_type">
+        <option value="" selected disabled>请选择关系类型</option>
+        <option value="主演" {% if actor.relation_type =='主演' %}selected{% endif %}>主演</option>
+        <option value="导演" {% if actor.relation_type =='导演' %}selected{% endif %}>导演</option>
+    </select><br>
+    {% endfor %}
 </form>
+    <br>
+    <input class="btn" type="submit" name="submit" value="Update">
 {% endblock %}
+</body>
