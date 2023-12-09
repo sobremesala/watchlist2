@@ -1,4 +1,3 @@
-
 from flask import request, url_for, redirect, flash
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
@@ -111,17 +110,21 @@ def index():
     # 创建电影条目
     if request.method == 'POST':  # 判断是否是 POST 请求
         # 获取表单数据
+
         if not current_user.is_authenticated:  # 如果当前用户未认证
             return redirect(url_for('index'))  # 重定向到主页
+
         title = request.form.get('title')
         release_date = request.form.get('release_date')
         country = request.form.get('country')
         movie_type = request.form.get('movie_type')
         year = int(request.form.get('year'))
+
         actor_name = request.form.get('actor_name')
         relation_type = request.form.get('relation_type')
         actor_country = request.form.get('actor_country')
         gender = request.form.get('gender')
+
         box_value = request.form.get('box')
         if box_value:
             box = float(box_value)
@@ -131,7 +134,7 @@ def index():
         if release_date == '':
             release_date = '9999/01/01'  # 使用 "9999/01/01" 替代空字符串
 
-        release_date = datetime.strptime(release_date, '%Y/%m/%d')
+        release_date = datetime.strptime(release_date, '%Y-%m-%d')
         if not title or not year or not country or not movie_type or len(str(year)) > 4 or len(title) > 60:
             flash('Invalid input.')  # 显示错误提示
             return redirect(url_for('index'))  # 重定向回主页
@@ -141,6 +144,7 @@ def index():
         db.session.add(movie) # 添加到数据库会话
         db.session.commit()  # # 提交数据库会话，保存关联关系和电影票房信息
         actor = ActorInfo(actor_name=actor_name, gender=gender, actor_country=actor_country)
+
         # 创建电影票房信息对象
         db.session.add(actor)
         db.session.commit()  # # 提交数据库会话，保存关联关系和电影票房信息
@@ -200,40 +204,45 @@ def edit(movie_id):
         if box_value:
             box = float(box_value)
         else:
-            box = None  # 或者其他你认为合适的默认值
+            box = movie.movie_box[0].box  # None
         # 验证数据
-        if release_date == '':
-            release_date = '9999/01/01'  # 使用 "9999/01/01" 替代空字符串
+        if not release_date == '':
+            release_date = datetime.strptime(release_date, '%Y-%m-%d')
+            movie.release_date = release_date
+        else:
+            movie.release_date = movie.release_date
 
-        release_date = datetime.strptime(release_date, '%Y/%m/%d')
         if not title or not year or not country or not movie_type or len(str(year)) > 4 or len(title) > 60:
             flash('Invalid input.')  # 显示错误提示
             return redirect(url_for('index'))  # 重定向回主页
         # 更新电影信息
         movie.title = title
-        movie.release_date = release_date
+        # movie.release_date = release_date
         movie.country = country
         movie.movie_type = movie_type
         movie.year = year
         # 更新演员信息
         if movie.movie_actor_relations:
             for relation in movie.movie_actor_relations:
+                relation.relation_type = relation_type
                 if relation.actor:
                     relation.actor.actor_name = actor_name
                     relation.actor.gender = gender
                     relation.actor.actor_country = actor_country
         # 更新票房信息
         if movie.movie_box:
-            movie.movie_box.box = box
+            movie.movie_box[0].box = box
+        '''
         # 更新电影和演员的关联关系
         if movie.movie_actor_relations:
             for relation in movie.movie_actor_relations:
                 relation.relation_type = relation_type
+        '''
         # 提交数据库会话，保存更新后的信息
         db.session.commit()
         flash('Item updated.')
         return redirect(url_for('index'))  # 重定向回主页
-    return render_template('edit.html', movie=movie, actor_info=movie.movie_actor_relations, move_box=movie.movie_box)
+    return render_template('edit.html', movie=movie, actor_info=movie.movie_actor_relations, move_box=movie.movie_box[0])
 
 @app.route('/movie/delete/<int:movie_id>', methods=['POST'])  # 限定只接受 POST 请求
 @login_required  # 登录保护
@@ -290,6 +299,7 @@ def logout():
 @app.route('/settings', methods=['GET', 'POST'])
 @login_required
 def settings():
+    user = current_user  # 获取当前登录用户的数据库记录对象
     if request.method == 'POST':
         name = request.form['name']
 
@@ -297,16 +307,16 @@ def settings():
             flash('Invalid input.')
             return redirect(url_for('settings'))
 
-        current_user.name = name
+        # current_user.name = name
         # current_user 会返回当前登录用户的数据库记录对象
         # 等同于下面的用法
-        # user = User.query.first()
-        # user.name = name
+        user = User.query.first()
+        user.name = name
         db.session.commit()
         flash('Settings updated.')
         return redirect(url_for('index'))
 
-    return render_template('settings.html')
+    return render_template('settings.html', user=user)
 
 
 
@@ -319,28 +329,29 @@ def user_page(name):
 # 搜索结果界面的渲染
 @app.route('/search', methods=['GET', 'POST'])
 def search():
-    search_term = request.form.get('search_term')
+    title = request.form.get('title')
     year = request.form.get('year')
     movie_type = request.form.get('movie_type')
     country = request.form.get('country')
-    actor = request.form.get('actor')
-
+    actor_name = request.form.get('actor_name')
     # 构建查询
     query = Movie.query
 
-    if search_term:
-        query = query.filter(Movie.title.ilike(f'%{search_term}%'))
+    if title:
+        query = query.filter(Movie.title.ilike(f'%{title}%'))
     if year:
         query = query.filter(Movie.year == year)
     if movie_type:
         query = query.filter(Movie.movie_type == movie_type)
     if country:
         query = query.filter(Movie.country.ilike(f'%{country}%'))
-    if actor:
-        query = query.join(Movie.movie_actor_relations).join(MovieActorRelation.actor).filter(ActorInfo.actor_name.ilike(f'%{actor}%'))
+    if actor_name:
+        query = query.join(Movie.movie_actor_relations).join(MovieActorRelation.actor).filter(ActorInfo.actor_name.ilike(f'%{actor_name}%'))
 
     # 执行查询并获取结果
     movies = query.all()
+    # movies = query.join(Movie.movie_actor_relations).join(MovieActorRelation.actor).add_columns(Movie, ActorInfo).all()
+    flash('Search success!')
     return render_template('search_results.html', movies=movies)
 
 # 在搜索界面定义返回函数
@@ -360,3 +371,22 @@ with app.app_context():
     # 删除表
     db.drop_all()
 '''
+# 电影类型票房排序
+@app.route('/box-office', methods=['GET', 'POST'])
+def box_office():
+    if request.method == 'POST':
+        movie_type = request.form.get('movie_type')
+        sort_order = request.form.get('sort_order')
+
+
+        movies = Movie.query.filter_by(movie_type=movie_type).options(db.joinedload(Movie.movie_box)).all()
+
+            # 根据票房进行排序
+        if sort_order == 'asc':
+            movies = sorted(movies, key=lambda x: x.movie_box[0].box)
+        else:
+            movies = sorted(movies, key=lambda x: x.movie_box[0].box, reverse=True)
+        flash('Success!')
+        return render_template('box_office.html', movies=movies, movie_type=movie_type, sort_order=sort_order)
+
+    return render_template('box_office.html')
