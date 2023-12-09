@@ -1,0 +1,60 @@
+<head>
+  <link rel="stylesheet" href="edit.css">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> Sobremesala's Watchlist </title>
+    <link rel="icon" href="{{ url_for('static', filename='images/fo.jpg') }}">
+</head>
+<body>
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1>Box Office</h1>
+
+    <form method="POST" action="{{ url_for('box_office') }}">
+        <label for="movie_type">Movie Type:</label>
+        <select name="movie_type" id="movie_type" autocomplete="off">
+            <option value="动作">动作</option>
+            <option value="喜剧">喜剧</option>
+            <option value="剧情">剧情</option>
+            <option value="战争">战争</option>
+            <option value="科幻">科幻</option>
+            <option value="动画">动画</option>
+            <option value="悬疑">悬疑</option>
+            <option value="惊悚">惊悚</option>
+            <option value="推理">推理</option>
+        </select>
+        &nbsp;&nbsp;
+        <label for="sort_order">Sort Order:</label>
+        <select name="sort_order" id="sort_order">
+            <option value="asc">Ascending</option>
+            <option value="desc">Descending</option>
+        </select>
+        &nbsp;
+        <input type="submit" value="Submit">
+    </form>
+
+
+
+<div class="list-container">
+<ul class="movie-list">
+    {% for movie in movies %}
+    <li>{{ movie.title }} - {{ movie.year }} - {{ movie.country }} - {{ movie.movie_type }} - {{ movie.movie_box[0].box }}
+        <span class="float-right">
+            {% if current_user.is_authenticated %}
+            <a class="btn" href="{{ url_for('edit', movie_id=movie.movie_id) }}">Edit</a>
+            <form class="inline-form" method="post" action="{{ url_for('delete', movie_id=movie.movie_id) }}">
+                <input class="btn" type="submit" name="delete" value="Delete" onclick="return confirm('Are you sure?')">
+            </form>
+            {% endif %}
+            <a class="imdb" href="https://www.imdb.com/find?q={{ movie.title }}" target="_blank" title="Find this movie on IMDb">IMDb</a>
+        </span>
+    </li>
+    {% endfor %}
+</ul>
+</div>
+    <a class="back-button" href="{{ url_for('index') }}">返回</a>
+{% endblock %}
+
+</body>
+
