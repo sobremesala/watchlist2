@@ -1,0 +1,58 @@
+/* 全局样式 */
+body {
+  font-family: Arial, sans-serif;
+  line-height: 0.5; /* 默认行高的 0.5 倍 */
+  background-color: #f2f2f2;
+}
+
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* 表单样式 */
+form[name="edit-movie-form"] {
+  display: flex;
+  flex-direction: column;
+  width: 50%; /* 占据页面的三分之一宽度 */
+  border: 2px solid #ccc; /* 添加边框 */
+  padding: 20px; /* 添加内边距 */
+  border-radius: 10px; /* 添加弧度 */
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+h3 {
+  margin-top: 0;
+}
+
+label {
+  display: block;
+  margin-bottom: 10px;
+  font-weight: bold;
+}
+
+input[type="text"],
+input[type="date"],
+select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  margin-bottom: 20px;
+}
+
+input[type="submit"] {
+  background-color: #4CAF50;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+input[type="submit"]:hover {
+  background-color: #45a049;
+}
