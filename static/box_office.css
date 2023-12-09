@@ -1,0 +1,50 @@
+/* styles.css */
+
+/* 设置表格样式 */
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 8px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+th {
+    background-color: #f2f2f2;
+}
+
+/* 设置标题样式 */
+h1 {
+    color: #333;
+    text-align: center;
+}
+
+/* 设置表单样式 */
+form {
+    margin-bottom: 20px;
+}
+
+label {
+    display: inline-block;
+    margin-right: 10px;
+}
+
+select {
+    padding: 5px;
+}
+
+input[type="submit"] {
+    padding: 5px 10px;
+    background-color: #333;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+}
+
+/* 设置整个页面的背景颜色 */
+body {
+    background-color: #f9f9f9;
+}
