@@ -1,11 +1,10 @@
 /* 页面整体 */
 body {
     margin: auto;
-    max-width: 580px;
+    max-width: 600px;
     font-size: 14px;
     font-family: Helvetica, Arial, sans-serif;
 }
-
 /* 页脚 */
 footer {
     color: #888;
@@ -13,7 +12,6 @@ footer {
     text-align: center;
     padding: 10px;
 }
-
 /* 头像 */
 .avatar {
     width: 40px;
@@ -22,23 +20,40 @@ footer {
 /* 电影列表 */
 .movie-list {
     list-style-type: none;
+    width: 100%; /* 占据页面的三分之一宽度 */
     padding: 0;
     margin-bottom: 10px;
     box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.16), 0 2px 10px 0 rgba(0, 0, 0, 0.12);
 }
-
 .movie-list li {
     padding: 12px 24px;
     border-bottom: 1px solid #ddd;
 }
-
 .movie-list li:last-child {
     border-bottom:none;
 }
-
 .movie-list li:hover {
     background-color: #f8f9fa;
 }
+/* 让表单中的删除按钮和旁边的编辑链接排成一行 */
+.inline-form {
+    display: inline;
+}
+/* IMDb 搜索页面的 URL */
+.float-right {
+    float: right;
+}
+.imdb {
+    font-size: 12px;
+    font-weight: bold;
+    color: black;
+    text-decoration: none;
+    background: lightsteelblue;
+    /* #F5C518 */
+    border-radius: 3px;
+    padding: 3px 5px;
+}
+/**/
 
 /* 龙猫图片 */
 .totoro {
@@ -55,6 +70,79 @@ nav ul {
     overflow: hidden;
     background-color: #333;
 }
+nav li {
+    float: left;
+}
+nav li a {
+    display: block;
+    color: white;
+    text-align: center;
+    padding: 8px 12px;
+    text-decoration: none;
+}
+nav li a:hover {
+    background-color: #111;
+}
+/**/
+
+
+label {
+  margin-bottom: 5px;
+}
+
+input,
+select {
+  margin-bottom: 5px;
+  border-radius: 3px; /* 添加弧度 */
+  border: 1px solid #555555;
+  border-radius: 5px;
+}
+
+.btn {
+    font-size: 15px;
+    padding: 3px 5px;
+    text-decoration: none;
+    cursor: pointer;
+    background-color: white;
+    color: black;
+    border: 1px solid black;
+    border-radius: 3px;
+    margin-top: 1px;
+}
+
+.btn:hover {
+    text-decoration: none ;
+    background-color: black;
+    color: white;
+    border: 1px solid black;
+}
+
+/* alert 类为提示消息增加样式：*/
+.alert {
+    position: relative;
+    padding: 7px;
+    margin: 7px 0;
+    border: 1px solid transparent;
+    color: #1e5c8f;
+    background-color: #cce5ff;
+    border-color: #b8daff;
+    border-radius: 5px;
+}
+
+form[name="search-form"] input[type=submit] {
+    font-family: inherit;
+    border: 1px solid black;
+}
+
+form[name="search-form"] input[type=text] {
+    border: 1px solid #faf9f9;
+    border: 1px solid #ccc;
+}
+
+form[name="search-form"] {
+    margin-bottom: 10px;
+}
+
 
 nav li {
     float: left;
@@ -88,93 +176,99 @@ nav li a:hover {
     border-radius: 5px;
     padding: 3px 5px;
 }
-/**/
 
-/* 覆盖某些浏览器对 input 元素定义的字体 */
-/*两个输入框和提交按钮相关*/
-form[name="add-movie-form"] input[type=submit] {
-    font-family: inherit;
+/* 搜索结果界面 */
+.movie-container {
+  border: 1px solid #000;
+  padding: 10px;
+  margin-bottom: 20px;
 }
 
-form[name="add-movie-form"] input[type=text] {
-    border: 1px solid #ccc;
+.movie-title {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 10px;
 }
 
-form[name="add-movie-form"] input[name=year] {
-    width: 50px;
+.movie-info {
+  margin-bottom: 10px;
 }
 
-.btn {
-    font-size: 12px;
-    padding: 3px 5px;
-    text-decoration: none;
-    cursor: pointer;
-    background-color: white;
-    color: black;
-    border: 1px solid #555555;
-    border-radius: 5px;
+.movie-actors {
+  margin-top: 10px;
 }
 
-.btn:hover {
-    text-decoration: none ;
-    background-color: black;
-    color: white;
-    border: 1px solid black;
+.movie-actors ul {
+  margin: 0;
+  padding-left: 20px;
 }
 
-/* alert 类为提示消息增加样式：*/
-.alert {
-    position: relative;
-    padding: 7px;
-    margin: 7px 0;
-    border: 1px solid transparent;
-    color: #1e5c8f;
-    background-color: #cce5ff;
-    border-color: #b8daff;
-    border-radius: 5px;
-}
-
-/* 让表单中的删除按钮和旁边的编辑链接排成一行 */
-.inline-form {
-    display: inline;
-}
-
-/*
-#search-form {
-    margin-bottom: 10px;
-}
-
-#search-form input[type="text"] {
-    width: 200px;
-    padding: 5px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-}
-
-#search-form input[type="submit"] {
-    padding: 5px 10px;
-}
-*/
-form[name="search-form"] input[type=text] {
-    border: 1px solid #faf9f9;
-    border: 1px solid #ccc;
-}
-
-form[name="search-form"] {
-    margin-bottom: 10px;
-
+.movie-actors li {
+  list-style-type: disc;
+  margin-bottom: 5px;
 }
 
 .back-button {
-    display: inline-block;
-    padding: 10px 20px;
-    background-color: #f1f1f1;
-    color: #333;
-    text-decoration: none;
-    border-radius: 5px;
+  display: inline-block;
+  padding: 10px 20px;
+  background-color: #ccc;
+  color: #000;
+  text-decoration: none;
+  border-radius: 5px;
+  font-weight: bold;
 }
 
 .back-button:hover {
-    background-color: #ddd;
+  background-color: #aaa;
+}
+form[name="search-form"] {
+  display: flex;
+  flex-direction: column;
+  width: 8%; /* 占据页面的三分之一宽度 */
+  margin-left: 1150px; /* 将表单右对齐 */
+  /*margin-top: -800px; /* 向上移动705像素 */
+    margin-top: 150px; /* 向下移动190像素 */
+  border: 2px solid #ccc; /* 添加边框 */
+  padding: 20px; /* 添加内边距 */
+  border-radius: 10px; /* 添加弧度 */
+  position: absolute;/* 与父模板并排 */
+  top: 0;
+  left: 0;
+}
+form[name="add-movie-form"] {
+  display: flex;
+  flex-direction: column;
+  width: 8%; /* 占据页面的三分之一宽度 */
+  margin-left: 1350px; /* 将表单右对齐 */
+  margin-top: 150px; /* 向下移动190像素 */
+  border: 2px solid #ccc; /* 添加边框 */
+  padding: 20px; /* 添加内边距 */
+  border-radius: 10px; /* 添加弧度 */
+  position: absolute;
+  top: 0;
+  left: 0;
 }
 
+form[name="edit-movie-form"] {
+  display: flex;
+  flex-direction: column;
+  width: 50%; /* 占据页面的三分之一宽度 */
+  border: 2px solid #ccc; /* 添加边框 */
+  padding: 20px; /* 添加内边距 */
+  border-radius: 10px; /* 添加弧度 */
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.no-find {
+    /*margin-top: -750px; /* 向上移动705像素 */
+    list-style-type: none;
+    padding: 0;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.16), 0 2px 10px 0 rgba(0, 0, 0, 0.12);
+}
+
+.list-container {
+  display: flex;
+}
