@@ -1,7 +1,11 @@
 <head>
   <link rel="stylesheet" href="edit.css">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> Sobremesala's Watchlist </title>
+    <link rel="icon" href="{{ url_for('static', filename='images/fo.jpg') }}">
+
 </head>
-<body>
 {% extends 'base.html' %}
 
 {% block content %}
@@ -9,11 +13,11 @@
 <form class="edit-movie-form" method="post">
     <h3>Edit Movie Information</h3>
     <label for="title">Name</label>
-    <input type="text" name="title" id="title" autocomplete="off" required value="{{ movie.title }}"><br>
+    <input type="text" name="title" id="title" required value="{{ movie.title }}"><br>
     <label for="year">Year</label>
-    <input type="text" name="year" id="year" autocomplete="off" required value="{{ movie.year }}"><br>
+    <input type="text" name="year" id="year" required value="{{ movie.year }}"><br>
     <label for="release_date">Release Date</label>
-    <input type="date" name="release_date" id="release_date" value="{{ movie.release_date }}"><br>
+    <input type="date" name="release_date" id="release_date" value="{{ movie.release_date|default('') }}"><br>
     <label for="country">Country</label>
     <input type="text" name="country" id="country" required value="{{ movie.country }}"><br>
     <label for="movie_type">Type</label>
@@ -35,7 +39,7 @@
     <h3>Edit Actor Information</h3>
     {% for actor in actor_info %}
     <label for="actor_name">Actor Name</label>
-    <input type="text" name="actor_name" id="actor_name" autocomplete="off" required value="{{ actor.actor.actor_name }}"><br>
+    <input type="text" name="actor_name" id="actor_name" required value="{{ actor.actor.actor_name }}"><br>
     <label for="gender">Gender</label>
     <select name="gender" id="gender">
         <option value="" selected disabled>请选择性别类型</option>
@@ -52,8 +56,9 @@
         <option value="导演" {% if actor.relation_type =='导演' %}selected{% endif %}>导演</option>
     </select><br>
     {% endfor %}
-</form>
+
     <br>
     <input class="btn" type="submit" name="submit" value="Update">
+</form>
 {% endblock %}
-</body>
+
